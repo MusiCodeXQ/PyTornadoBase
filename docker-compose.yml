@@ -1,0 +1,30 @@
+version: "3.2"
+
+services:
+
+  postgres:
+    container_name: pgsql
+    env_file: .env
+    # image: arm32v7/postgres:alpine
+    image: postgres:alpine
+    ports:
+      - target: 5432
+        published: 5432
+        protocol: tcp
+        mode: host
+    volumes:
+      - /home/yuxq/pgdata:/var/lib/postgresql/data
+
+  redis:
+    container_name: redis
+    env_file: .env
+    image: redis:alpine
+    # image: arm32v7/redis:alpine3.9
+    ports:
+      - target: 6379
+        published: 6379
+        protocol: tcp
+        mode: host
+    volumes:
+      - /home/yuxq/redisdata:/data
+
