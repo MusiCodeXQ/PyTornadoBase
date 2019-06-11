@@ -28,13 +28,13 @@ async def init_db():
 
 def make_app():
     return tornado.web.Application([
-        (r"/user", UserCtl),
-        (r"/login", LoginCtl),
-        (r"/sms/((13[0-9]|14[579]|15[0-3,5-9]|16[6]|17[0135678]|18[0-9]|19[89])\d{8}$)", SmsCtl),
-        (r"/sms", SmsCtl),
+        # (r"/user", UserCtl),
+        # (r"/login", LoginCtl),
+        # (r"/sms/((13[0-9]|14[579]|15[0-3,5-9]|16[6]|17[0135678]|18[0-9]|19[89])\d{8}$)", SmsCtl),
+        # (r"/sms", SmsCtl),
         # (r"/", UserCtl),
         # (r"/", UserCtl),
-    ],cookie_secret="yuxiaoqiyuanyuanruilixue",debug=True)
+    ],cookie_secret="youkey",debug=True)
 
 
 if __name__ == "__main__":
