@@ -5,7 +5,6 @@ import asyncio
 import asyncpg 
 import aioredis
 from tornado.options import define
-from src.ctl.userctl import UserCtl,SmsCtl,LoginCtl
 
 POSTGRES_HOST = os.getenv("POSTGRES_HOST", 'localhost')
 POSTGRES_USER = os.getenv("POSTGRES_USER", "db")
@@ -18,7 +17,7 @@ async def init_db():
         try:
             define('pgpool', default=await asyncpg.create_pool(host=POSTGRES_HOST, port=5432, user=POSTGRES_USER, password=POSTGRES_PASSWORD,
                                                                database=POSTGRES_DB))
-            define('redispool',default=await aioredis.create_pool('redis://localhost'))      
+            define('redispool',default=await aioredis.create_pool('redis://localhost'))
             break
         except Exception:
             await asyncio.sleep(1)
@@ -42,4 +41,3 @@ if __name__ == "__main__":
     app = make_app()
     app.listen(8888)
     tornado.ioloop.IOLoop.current().start()
-    pass

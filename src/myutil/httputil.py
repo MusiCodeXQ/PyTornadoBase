@@ -14,7 +14,7 @@ def pattern(validator, patrn, instance, schema):
         yield ValidationError(schema)
 
 
-def minLength(validator, mL, instance, schema):
+def min_length(validator, mL, instance, schema):
     if validator.is_type(instance, "string") and len(instance) < mL:
         yield ValidationError(schema)
 
@@ -37,7 +37,7 @@ def type(validator, types, instance, schema):
 
 # add some rules
 table['pattern'] = pattern
-table['minLength'] = minLength
+table['minLength'] = min_length
 table['required'] = required
 table['type'] = type
 meta_schema={"type": "object",
@@ -53,13 +53,22 @@ async def check(self, schema, fun, success=None, fail=None):
         self.request.body.decode('utf-8'))
     try:
         validate(instance=instance, schema=schema, cls=v)
-        await fun(instance)
-        if success is not None:
-            success(instance)
+        try:
+            await fun(instance)
+        except Exception as erro:
+            if fail is not None:
+                await fail(instance)
+            else:
+                self.set_status(500)
+                self.write("""{"code":"500","body":"服务器错误"}""")
+            pass
         else:
-            self.set_header("Content-Type", "application/json")
-            self.set_status(200)
-            self.write("""{"code":"200","body":"success"}""")
+            if success is not None:
+                success(instance)
+            else:
+                self.set_header("Content-Type", "application/json")
+                self.set_status(200)
+                self.write("""{"code":"200","body":"success"}""")
     except ValidationError as err:
         if fail is not None:
             fail(instance)
@@ -71,7 +80,6 @@ async def check(self, schema, fun, success=None, fail=None):
 class ValidationError(_Error):
     _word_for_schema_in_error_message = "schema"
     _word_for_instance_in_error_message = "instance"
-
     def __init__(self, map, type="default"):
         if isinstance(map, dict) and type == "default":
             name = map.get('name', "")
