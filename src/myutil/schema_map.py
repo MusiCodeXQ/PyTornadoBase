@@ -23,7 +23,7 @@ def get_default_sc() -> {}:
 def add_sc_pro(schema, name, map, need=False):
     schema['properties'][name] = map
     if need:
-        schema['required'].append('name')
+        schema['required'].append(name)
 
 
 def get_pro_map(pro_type, min_length: int = None, max_length: int = None, name: str = None) -> {}:

@@ -1,8 +1,10 @@
+from json import JSONDecodeError
+
 from jsonschema import validate, validators, Draft7Validator, _utils
 import json
 import re
-from jsonschema.exceptions import _Error, ValidationError
- 
+from jsonschema.exceptions import _Error
+
 table = dict(Draft7Validator.VALIDATORS)
 
 
@@ -30,8 +32,8 @@ def required(validator, required, instance, schema):
 def type(validator, types, instance, schema):
     types = _utils.ensure_list(types)
     if not any(validator.is_type(instance, type) for type in types):
-        nschema=schema.copy()
-        nschema['msg']=types_msg(instance, types)
+        nschema = schema.copy()
+        nschema['msg'] = types_msg(instance, types)
         yield ValidationError(nschema, type='type')
 
 
@@ -40,54 +42,78 @@ table['pattern'] = pattern
 table['minLength'] = min_length
 table['required'] = required
 table['type'] = type
-meta_schema={"type": "object",
-            "properties": {
-                "group_name": {"type": "string"}
-            }}
+meta_schema = {"type": "object",
+               "properties": {
+                   "group_name": {"type": "string"}
+               }}
 v = validators.create(meta_schema={}, validators=table)
 
 
 async def check(self, schema, fun, success=None, fail=None):
-
-    instance = json.loads(
-        self.request.body.decode('utf-8'))
     try:
+        instance = json.loads(
+            self.request.body.decode('utf-8'))
         validate(instance=instance, schema=schema, cls=v)
+        msg=''
         try:
-            await fun(instance)
-        except Exception as erro:
+            msg=await fun(instance)
+        except FunErro as erro:
             if fail is not None:
                 await fail(instance)
             else:
-                self.set_status(500)
-                self.write("""{"code":"500","body":"服务器错误"}""")
-            pass
+                self.set_status(erro.code)
+                self.write("""{"code":%d,"data":"%s"}""" % (erro.code, erro.msg))
+        except Exception as erro:
+            self.set_status(500)
+            self.write("""{"code":%d,"data":"%s"}""" % (500, str(erro)))
         else:
             if success is not None:
                 success(instance)
             else:
-                self.set_header("Content-Type", "application/json")
                 self.set_status(200)
-                self.write("""{"code":"200","body":"success"}""")
+                if msg is not None:
+                    self.write("""{"code":"200","data":"%s"}"""%msg)
+                else:
+                    self.write("""{"code":"200","data":"success"}""")
+
+                return
+    except JSONDecodeError as erro:
+        self.set_status(320)
+        self.write("""{
+            "code":320,
+            "data":"json格式校验错误"
+        }""")
+        return
     except ValidationError as err:
         if fail is not None:
             fail(instance)
         else:
-            self.write("""{"code":"406","body":%s}""" % err.message)
+            self.write("""{"code":"406","data":"%s"}""" % err.message)
+            return
         pass
+
+
+class FunErro(Exception):
+    def __init__(self, code, msg):
+        self.code = code
+        self.msg = msg
+
+    def __str__(self):
+        return repr(self.msg)
 
 
 class ValidationError(_Error):
     _word_for_schema_in_error_message = "schema"
     _word_for_instance_in_error_message = "instance"
+
     def __init__(self, map, type="default"):
         if isinstance(map, dict) and type == "default":
             name = map.get('name', "")
-            erro = map.get("erro","参数错误")
+            erro = map.get("erro", "参数错误")
             msg = '{"name":"%s","msg":"%s"}' % (name, erro)
             _Error.__init__(self, msg)
         elif isinstance(map, dict) and type == "type":
-            msg = '{"name":"%s","msg":"%s"}' % (map.get('name', ""),map['msg'])
+            msg = '{"name":"%s","msg":"%s"}' % (map.get('name', ""), map['msg'])
             _Error.__init__(self, msg)
 
         elif isinstance(map, str) and type == "required":
