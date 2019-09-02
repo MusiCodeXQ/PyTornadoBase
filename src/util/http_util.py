@@ -5,6 +5,8 @@ import json
 import re
 from jsonschema.exceptions import _Error
 
+from src.util.json_encoder import JsonEncoder
+
 table = dict(Draft7Validator.VALIDATORS)
 
 
@@ -50,6 +52,9 @@ v = validators.create(meta_schema={}, validators=table)
 
 
 async def check(self, schema, fun, success=None, fail=None):
+    self.set_header('Access-Control-Allow-Origin', '*') 
+    self.set_header('Access-Control-Allow-Headers', 'x-requested-with')
+    self.set_header('Access-Control-Allow-Methods', 'POST, GET, PUT, DELETE')
     try:
         instance = json.loads(
             self.request.body.decode('utf-8'))
@@ -63,9 +68,9 @@ async def check(self, schema, fun, success=None, fail=None):
             else:
                 self.set_status(erro.code)
                 self.write("""{"code":%d,"data":"%s"}""" % (erro.code, erro.msg))
-        except Exception as erro:
-            self.set_status(500)
-            self.write("""{"code":%d,"data":"%s"}""" % (500, str(erro)))
+        # except Exception as erro:
+        #     self.set_status(500)
+        #     self.write("""{"code":%d,"data":"%s"}""" % (500, str(erro)))
         else:
             if success is not None:
                 success(instance)
@@ -88,9 +93,23 @@ async def check(self, schema, fun, success=None, fail=None):
         if fail is not None:
             fail(instance)
         else:
-            self.write("""{"code":"406","data":"%s"}""" % err.message)
+            self.set_status(406)
+            self.write("""{"code":"406","data":%s}""" % err.message)
             return
         pass
+
+def wegood(self,data={'code':200,'msg':'success'}):
+    self.set_header("Content-Type", "application/json")
+    self.set_status(200)
+    if data is not None:
+        data={'code':200,'msg':'success','data':data}
+    self.write(json.dumps(data,cls=JsonEncoder))
+
+    
+def webad(self,code,data):
+    self.set_header("Content-Type", "application/json")
+    self.set_status(code)
+    self.write(json.dumps(data, cls=JsonEncoder))
 
 
 class FunErro(Exception):
