@@ -34,8 +34,11 @@ def add_sc_pro(schema, name: str, pro_type, min_length: int = None, max_length: 
     if need:
         schema['required'].append(name)
 
+def add_sc_data(schema, names: list,need=True):
+    for name in names:
+        add_sc_pro(schema,name,ProTypes.STRING,need=need)
 
-def add_sc_data(schema, datas: list,need=True):
+def add_sc_data_n(schema, datas: list,need=True):
     for data in datas:
         tp=data.value_type
         if tp==ProTypes.DATATIME:

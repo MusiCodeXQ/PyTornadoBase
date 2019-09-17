@@ -98,11 +98,13 @@ async def check(self, schema, fun, success=None, fail=None):
             return
         pass
 
-def wegood(self,data={'code':200,'msg':'success'}):
+def wegood(self,data=None):
     self.set_header("Content-Type", "application/json")
     self.set_status(200)
     if data is not None:
         data={'code':200,'msg':'success','data':data}
+    else:
+        data={'code':200,'msg':'success'}
     self.write(json.dumps(data,cls=JsonEncoder))
 
     

@@ -18,7 +18,7 @@ for root, dirs, files in os.walk(dirs):
     if root[-1] != '.':
         root = root+'.'
     for file in files:
-        if re.match('[a-z]*_hdl.py$', file):
+        if re.match('[a-z_]*hdl.py$', file):
             __import__(str(root+file)[:-3])
 
 async def init_db():
@@ -44,6 +44,6 @@ async def init_db():
 
 
 if __name__ == "__main__":
-    asyncio.get_event_loop().run_until_complete(init_db())
+    # asyncio.get_event_loop().run_until_complete(init_db())
     app.listen(8888)
     tornado.ioloop.IOLoop.current().start()

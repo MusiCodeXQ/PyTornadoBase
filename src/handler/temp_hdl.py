@@ -1,4 +1,4 @@
-from src.util import schema_map, db_util,http_util,data_util
+from src.util import schema_util, db_util,http_util,data_util
 from src.com.request_com import app
 from tornado.web import RequestHandler
 from html.parser import HTMLParser
@@ -34,7 +34,7 @@ class TempHandler(RequestHandler):
         self.write(temp)
 
     async def post(self):
-        schema=schema_map.get_default_sc()
+        schema=schema_utile.get_default_sc()
         async def fun(inst:dict):
             print(inst)
             print(inst.keys())

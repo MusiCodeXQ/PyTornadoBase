@@ -1,4 +1,4 @@
-from src.util.schema_map import ProTypes
+from src.util.schema_util import ProTypes
 import datetime
 
 temp="""from src.util.schema_map import ProTypes
